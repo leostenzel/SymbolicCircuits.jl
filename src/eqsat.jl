@@ -6,11 +6,11 @@ block_rule = get_block_rules()
 
 function _simplify(circuit::Circuit, ::Val{:default_rule}, timeout)
     return _simplify(circuit, default_rule, timeout)
-end 
+end
 
 function _simplify(circuit::Circuit, ::Val{:block_rule}, timeout)
     return _simplify(circuit, block_rule, timeout)
-end 
+end
 
 function _simplify(circuit::Circuit, v::Vector{<:AbstractRule}, timeout)
     circuit = circuit.expr
@@ -21,7 +21,7 @@ function _simplify(circuit::Circuit, v::Vector{<:AbstractRule}, timeout)
     circuit = Circuit(circuit)
     # println(report.reason)
     return circuit, report
-end 
+end
 
 function egraph_simplify(circuit::Circuit, rule; verbose=false, timeout=100, repeat=3)
     return egraph_simplify(circuit, _simplify, rule; verbose=verbose, timeout=timeout, repeat=repeat)
@@ -43,7 +43,7 @@ function egraph_simplify(circuit::Circuit, f::Function, rule; verbose=false, tim
         len = get_length(circuit)
         circuit, report = _simp(circuit)
         reason = report.reason
-        
+
         if verbose
             print(i, " ", reason, " ")
             show_length(circuit)
@@ -51,33 +51,31 @@ function egraph_simplify(circuit::Circuit, f::Function, rule; verbose=false, tim
             println()
         end
 
-        if reason==:saturated
+        if reason == :saturated
             if verbose
                 println("saturated")
             end
-            break 
+            break
         end
 
-        if len<=get_length(circuit) 
+        if len <= get_length(circuit)
             count += 1
-        else 
+        else
             count = 1
         end
-        
+
         if count > repeat
             if verbose
                 println(report)
                 println("early stop")
             end
-            break 
-        end 
+            break
+        end
 
         i += 1
     end
 
-    circuit = rebuild_circuit(circuit)
-    return circuit
-
+    rebuild_circuit(circuit)
 end
 
 import Metatheory: EGraph, EClassId, AbstractENode, AbstractRule, addexpr!, EqualityGoal, reached
@@ -90,7 +88,9 @@ end
 
 function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=SaturationParams())
     # @log "Checking equality for " exprs
-    if length(exprs) == 1; return true end
+    if length(exprs) == 1
+        return true
+    end
     # rebuild!(G)
 
     # @log "starting saturation"
@@ -105,7 +105,7 @@ function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=Satura
     end
 
     goal = EqualityGoal(collect(exprs), ids)
-    
+
     # alleq = () -> (all(x -> in_same_set(G.uf, ids[1], x), ids[2:end]))
 
     params.goal = goal
@@ -116,7 +116,7 @@ function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=Satura
     if report.reason in [:goalreached, :saturated]
         return reached(g, goal)
     else
-        return report.reason 
+        return report.reason
     end
 
     # # display(g.classes); println()
@@ -132,7 +132,7 @@ end
 function areequal(::Val{:default_rule}, circs...)
     # exprs = [x.expr for x in circs]
     # ncirc = Circuit[]
-    # for circ in circs 
+    # for circ in circs
     #     if get_length(circ)==1
     #         circ *= One()
     #     end
@@ -140,7 +140,7 @@ function areequal(::Val{:default_rule}, circs...)
     # end
 
     # nexprs = [x.expr for x in ncirc]
-    
+
     # return _areequal(default_rule, nexprs...)
 
     return areequal(Val(:withrule), default_rule, circs...)
@@ -150,14 +150,14 @@ end
 function areequal(::Val{:withrule}, rules, circs...)
     # exprs = [x.expr for x in circs]
     ncirc = Circuit[]
-    for circ in circs 
-        if get_length(circ)==1
+    for circ in circs
+        if get_length(circ) == 1
             circ *= One()
         end
         push!(ncirc, circ)
     end
 
     nexprs = [x.expr for x in ncirc]
-    
+
     return _areequal(rules, nexprs...)
 end

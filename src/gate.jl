@@ -17,7 +17,7 @@ abstract type RG <: G end
 
 abstract type Hamiltonian <: G end
 
-struct Pauli <:Hamiltonian 
+struct Pauli <:Hamiltonian
     mapping::Dict
 end
 
@@ -32,20 +32,20 @@ struct gT <:SG end
 struct gS <:SG end
 
 
-struct rX <:RG 
+struct rX <:RG
     theta::Vector{Any}
 end
 
-struct rY <:RG 
+struct rY <:RG
     theta::Vector{Any}
 end
 
-struct rZ <:RG 
+struct rZ <:RG
     theta::Vector{Any}
 end
 
 
-struct A <: Hamiltonian end 
+struct A <: Hamiltonian end
 struct Ad <: Hamiltonian end
 
 
@@ -70,15 +70,15 @@ struct Positive end
 struct Negative end
 
 
-struct rXd <:RG 
+struct rXd <:RG
     theta::Vector{Any}
 end
 
-struct rYd <:RG 
+struct rYd <:RG
     theta::Vector{Any}
 end
 
-struct rZd <:RG 
+struct rZd <:RG
     theta::Vector{Any}
 end
 
@@ -103,10 +103,10 @@ struct cLoc <: Q
 end
 
 abstract type D end
-struct Normal <: D end 
+struct Normal <: D end
 struct Dagger <: D end
 
-struct Gate{T<:D} 
+struct Gate{T<:D}
     g::G
     loc::Vector{Q}
 end
@@ -125,7 +125,7 @@ const DaggerGate = Gate{Dagger}
 #     gate2::Gate
 # end
 
-# struct Circuit 
+# struct Circuit
 #     gates::Tuple{Gate}
 #     Circuit(gates...) = new(gates)
 # end
@@ -135,22 +135,22 @@ const DaggerGate = Gate{Dagger}
 # merge!(dagger_dict, rev_dagger_dict)
 
 function gate2string(g::Gate)
-    type_dict = Dict(gX=>"X", gY=>"Y", gZ=>"Z", 
-                    gH=>"H", gT=>"T", gS=>"S", 
+    type_dict = Dict(gX=>"X", gY=>"Y", gZ=>"Z",
+                    gH=>"H", gT=>"T", gS=>"S",
                     rX=>"RX", rY=>"RY", rZ=>"RZ", )
-                    # gXd=>"X_dagger", gYd=>"Y_dagger", 
-                    # gZd=>"Z_dagger", gHd=>"H_dagger", 
-                    # gTd=>"T_dagger", gSd=>"S_dagger", 
+                    # gXd=>"X_dagger", gYd=>"Y_dagger",
+                    # gZd=>"Z_dagger", gHd=>"H_dagger",
+                    # gTd=>"T_dagger", gSd=>"S_dagger",
                     # rXd=>"RX_dagger", rYd=>"RY_dagger", rZd=>"RZ_dagger")
 
     g_str = type_dict[typeof(g.g)]
-    for loc in g.loc 
+    for loc in g.loc
         if isa(loc, Loc)
             g_str = g_str * " " * string(loc.index)
         elseif isa(loc, cLoc)
             g_str = g_str * " " * "c"*string(loc.index)
-        end 
-    end 
+        end
+    end
     return g_str
 end
 
@@ -167,9 +167,9 @@ function is_loc_intersect(a::Gate, b::Gate)
     # check = false
     # for index in indices1
     #     if index in indices2
-    #         check = true 
-    #     end 
-    # end 
+    #         check = true
+    #     end
+    # end
     # return check
     return is_intersect(indices1, indices2)
 end
@@ -184,17 +184,17 @@ end
 
 function is_loc_type_identity(a::Gate, b::Gate)
     check = true
-    for loca in a.loc 
-        for locb in b.loc 
-            if loca.index==locb.index 
+    for loca in a.loc
+        for locb in b.loc
+            if loca.index==locb.index
                 if isa(loca, Loc)
                     check = check && isa(locb, Loc)
                 elseif isa(loca, cLoc)
                     check = check && isa(locb, cLoc)
-                end 
-            end 
-        end 
-    end 
+                end
+            end
+        end
+    end
     return check
 end
 
@@ -204,11 +204,11 @@ end
 
 function is_cancel(a::Gate, b::Gate)
     if is_loc_identity(a, b) && is_loc_type_identity(a, b) && is_gate_type_identity(a, b) && isa(a.g, UHG) || is_AAdagger(a, b)
-        return true 
-    end 
+        return true
+    end
 
     # if is_AAdagger(a, b)
-    #     return true 
+    #     return true
     # end
 
     return false
@@ -220,8 +220,8 @@ function is_gate_type_inverse(a::Gate, b::Gate)
     else
         # return typeof(a.g)==dagger_dict[typeof(b.g)]
         if (a isa Gate{Normal} && b isa Gate{Dagger}) || (b isa Gate{Normal} && a isa Gate{Dagger})
-            return true 
-        end 
+            return true
+        end
     end
 
     return false
@@ -233,9 +233,9 @@ function is_AAdagger(a::Gate, b::Gate)
             return true
         elseif isa(a.g, RG)
             if is_set_identity(a.g.theta, b.g.theta)
-                return true 
+                return true
             end
-        else 
+        else
             error()
         end
     end
@@ -245,11 +245,11 @@ end
 
 
 function is_no_control(a::Gate)
-    for loc in a.loc 
-        if loc isa cLoc 
-            return false 
-        end 
-    end 
+    for loc in a.loc
+        if loc isa cLoc
+            return false
+        end
+    end
     return true
 end
 
@@ -295,18 +295,18 @@ function is_S(a::Gate)
 end
 
 function get_CNOT_loc_index(a::Gate, ::Val{:loc})
-    for loc in a.loc 
-        if loc isa Loc 
-            return loc.index 
-        end 
+    for loc in a.loc
+        if loc isa Loc
+            return loc.index
+        end
     end
 end
 
 function get_CNOT_loc_index(a::Gate, ::Val{:cloc})
-    for loc in a.loc 
-        if loc isa cLoc 
-            return loc.index 
-        end 
+    for loc in a.loc
+        if loc isa cLoc
+            return loc.index
+        end
     end
 end
 
@@ -315,30 +315,30 @@ function is_CNOT(a::Gate)
         if length(a.loc)==2
             if isa(a.loc[1], Loc) || isa(a.loc[2], Loc)
                 if isa(a.loc[1], cLoc) || isa(a.loc[2], cLoc)
-                    return true 
-                end 
-            end 
-        end 
+                    return true
+                end
+            end
+        end
     end
-    return false 
+    return false
 end
 
 
 function is_CNOT_T_commute(a::Gate, b::Gate)
     if (a isa Gate{Normal} && b isa Gate{Normal}) || (a isa Gate{Dagger} && b isa Gate{Dagger})
         if is_CNOT(a) && (is_T(b) || is_S(b) || is_Z(b))
-            for loc in a.loc 
+            for loc in a.loc
                 if isa(loc, cLoc)
-                    index = loc.index 
-                    if index == b.loc[1].index 
-                        return true 
-                    end 
-                end 
-            end 
-        end 
+                    index = loc.index
+                    if index == b.loc[1].index
+                        return true
+                    end
+                end
+            end
+        end
     end
 
-    return false 
+    return false
 end
 
 
@@ -390,27 +390,27 @@ end
 #         if length(a.loc)==2
 #             if isa(a.loc[1], Loc) || isa(a.loc[2], Loc)
 #                 if isa(a.loc[1], cLoc) || isa(a.loc[2], cLoc)
-#                     return true 
-#                 end 
-#             end 
-#         end 
+#                     return true
+#                 end
+#             end
+#         end
 #     end
-#     return false 
+#     return false
 # end
 
 
 # function is_CNOTd_Td_commute(a::Gate, b::Gate)
 #     if is_CNOTd(a) && (is_Td(b) || is_Sd(b) || is_Zd(b))
-#         for loc in a.loc 
+#         for loc in a.loc
 #             if isa(loc, cLoc)
-#                 index = loc.index 
-#                 if index == b.loc[1].index 
-#                     return true 
-#                 end 
-#             end 
-#         end 
-#     end 
-#     return false 
+#                 index = loc.index
+#                 if index == b.loc[1].index
+#                     return true
+#                 end
+#             end
+#         end
+#     end
+#     return false
 # end
 
 
@@ -436,16 +436,16 @@ end
 
 function is_commute(a::Gate, b::Gate)
     if !is_loc_intersect(a, b)
-        return true 
-    end 
+        return true
+    end
 
     if is_CNOT_T_commute(a, b) || is_CNOT_T_commute(b, a)
-        return true 
-    end 
+        return true
+    end
 
     # if is_CNOTd_Td_commute(a, b) || is_CNOTd_Td_commute(b, a)
-    #     return true 
-    # end 
+    #     return true
+    # end
 
 
     return false
@@ -456,24 +456,24 @@ function is_r_merge(a::Gate, b::Gate)
     if is_single_qubit(a) && is_single_qubit(b)
         if is_loc_identity(a, b) && is_gate_type_identity(a, b) && is_loc_type_identity(a, b)
             if isa(a.g, RG)
-                return true 
-            end 
-        end 
+                return true
+            end
+        end
     end
     return false
 end
 
 
 function is_expand(a::Gate)
-    if is_S(a) 
-        return true 
-    # elseif is_Sd(a) 
-    #     return true 
-    elseif is_Z(a) 
+    if is_S(a)
         return true
-    # elseif is_Zd(a) 
-    #     return true 
-    end 
+    # elseif is_Sd(a)
+    #     return true
+    elseif is_Z(a)
+        return true
+    # elseif is_Zd(a)
+    #     return true
+    end
     return false
 end
 
@@ -499,7 +499,7 @@ function expand(a::Gate)
     #     index = a.loc[1].index
     #     g = typeof(a)(gSd(), [Loc(index), ])
     #     return :($(g) * $(g))
-    end 
+    end
     error()
 end
 
@@ -512,41 +512,26 @@ end
 function is_merge(a::Gate, b::Gate)
     if is_loc_identity(a, b)
         if is_S(a) && is_S(b) && !is_AAdagger(a, b)
-            return true 
-        # elseif is_Sd(a) && is_Sd(b)
-        #     return true 
+            return true
         elseif is_T(a) && is_T(b) && !is_AAdagger(a, b)
             return true
-        # elseif is_Td(a) && is_Td(b)
-        #     return true 
         elseif is_r_merge(a, b)
             return true
-        end 
-    end 
+        end
+    end
     return false
 end
 
 function merge(a::Gate, b::Gate)
     if is_S(a)
-        g = typeof(a)(gZ(), a.loc)
-        return :($(g))
-
-    # elseif is_Sd(a)
-    #     g = typeof(a)(gZd(), a.loc)
-    #     return :($(g))
+        return :($(typeof(a))(gZ(), $(a.loc)))
 
     elseif is_T(a)
-        g = typeof(a)(gS(), a.loc)
-        return :($(g))
-
-    # elseif is_Td(a)
-    #     g = typeof(a)(gSd(), a.loc)
-    #     return :($(g))
+        return :($(typeof(a))(gS(), $(a.loc)))
 
     elseif is_r_merge(a, b)
-        g = typeof(a)(a.g*b.g, a.loc)
-        return :($(g))
-    end 
+        return :($(typeof(a))($(a.g*b.g), $(a.loc)))
+    end
     error()
 end
 
@@ -554,7 +539,7 @@ end
 function to_cancel(a::Gate, b::Gate)
     if is_cancel(a, b)
         return :(One())
-    else 
+    else
         return :($a * $b)
     end
 end
@@ -566,9 +551,9 @@ function to_dagger(a::Gate)
             g = Gate{Dagger}(typeof(a.g)(), a.loc)
         elseif a isa Gate{Dagger}
             g = Gate{Normal}(typeof(a.g)(), a.loc)
-        else 
-            error() 
-        end 
+        else
+            error()
+        end
 
     elseif isa(a.g, RG)
         theta = a.g.theta
@@ -576,10 +561,10 @@ function to_dagger(a::Gate)
             g = Gate{Dagger}(typeof(a.g)(theta), a.loc)
         elseif a isa Gate{Dagger}
             g = Gate{Normal}(typeof(a.g)(theta), a.loc)
-        else 
+        else
             error()
         end
-    else 
+    else
         error()
     end
 

@@ -3,10 +3,10 @@ using Metatheory.Library: @right_associative, @left_associative
 ra_rule = @right_associative (*)
 la_rule = @left_associative (*)
 
-commute_rule = @rule a b a::Gate * b::Gate => :($(b) * $(a)) where is_commute(a, b)
-cancel_rule = @rule a b a::Gate * b::Gate => One() where is_cancel(a, b)
-expand_rule = @rule a a::Gate => expand(a) where is_expand(a)
-merge_rule = @rule a b a::Gate * b::Gate => merge(a, b) where is_merge(a, b)
+commute_rule = @rule a b a::Gate * b::Gate => :($(b) * $(a)) where {is_commute(a, b)}
+cancel_rule = @rule a b a::Gate * b::Gate => One() where {is_cancel(a, b)}
+expand_rule = @rule a a::Gate => expand(a) where {is_expand(a)}
+merge_rule = @rule a b a::Gate * b::Gate => merge(a, b) where {is_merge(a, b)}
 
 
 """could be used, but does not work well"""
@@ -15,7 +15,7 @@ merge_rule = @rule a b a::Gate * b::Gate => merge(a, b) where is_merge(a, b)
 """end"""
 
 
-one_rules = @theory a b begin 
+one_rules = @theory a b begin
     b::One * a::Gate --> a
     a::Gate * b::One --> a
     b::One * a::Real --> a
@@ -26,17 +26,17 @@ end
 
 """some rewrite rules"""
 to_dagger_rule = @rule x x::Gate => to_dagger(x)
-Z2HXH_rule = @rule a a::Gate => generate_HXH(a) where is_Z(a)
-HXH2Z_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Z(a) where is_HXH(a, b, c)
+Z2HXH_rule = @rule a a::Gate => generate_HXH(a) where {is_Z(a)}
+HXH2Z_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Z(a) where {is_HXH(a, b, c)}
 
-X2HZH_rule = @rule a a::Gate => generate_HZH(a) where is_X(a)
-HZH2X_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_X(a) where is_HZH(a, b, c)
+X2HZH_rule = @rule a a::Gate => generate_HZH(a) where {is_X(a)}
+HZH2X_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_X(a) where {is_HZH(a, b, c)}
 """some rewrite rules end"""
 
 """cnot rules"""
 
 function check_H_CNOT(a::Gate, b::Gate, c::Gate, d::Gate, e::Gate)
-    check = true 
+    check = true
     check = check && is_H(a) && is_H(b) && is_CNOT(c) && is_H(d) && is_H(e)
     check = check && (!is_gate_type_inverse(a, b) && !is_gate_type_inverse(a, c) && !is_gate_type_inverse(a, d) && !is_gate_type_inverse(a, e))
 
@@ -45,25 +45,25 @@ function check_H_CNOT(a::Gate, b::Gate, c::Gate, d::Gate, e::Gate)
     index_d = loc_indices(d)[1]
     index_e = loc_indices(e)[1]
 
-    check = check && (index_a!==index_b) && (index_d!==index_e)
-    check = check && (((index_a==index_d) && (index_b==index_e)) || ((index_a==index_e) && (index_b==index_d)))
+    check = check && (index_a !== index_b) && (index_d !== index_e)
+    check = check && (((index_a == index_d) && (index_b == index_e)) || ((index_a == index_e) && (index_b == index_d)))
 
     index_i, index_j = loc_indices(c)
-    check = check && (((index_i==index_a) && (index_j==index_b)) || ((index_j==index_a) && (index_i==index_b)))
+    check = check && (((index_i == index_a) && (index_j == index_b)) || ((index_j == index_a) && (index_i == index_b)))
     return check
 end
 
 function invert_CNOT_indices(c::Gate)
     index, c_index = nothing, nothing
     for l in c.loc
-        if l isa Loc 
+        if l isa Loc
             index = l.index
-        elseif l isa cLoc 
-            c_index = l.index 
-        else 
+        elseif l isa cLoc
+            c_index = l.index
+        else
             error()
-        end 
-    end 
+        end
+    end
 
     g = typeof(c)(gX(), [Loc(index), cLoc(c_index)])
     # return :($g)
@@ -75,7 +75,7 @@ function invert_CNOT_indices2expr(c::Gate)
     return :($g)
 end
 
-H_CNOT2CNOT_rule = @rule a b c d e a::Gate * b::Gate * c::Gate * d::Gate * e::Gate => invert_CNOT_indices2expr(c) where check_H_CNOT(a, b, c, d, e)
+H_CNOT2CNOT_rule = @rule a b c d e a::Gate * b::Gate * c::Gate * d::Gate * e::Gate => invert_CNOT_indices2expr(c) where {check_H_CNOT(a, b, c, d, e)}
 
 function get_H_CNOT(c::Gate)
     index_i, index_j = loc_indices(c)
@@ -84,31 +84,31 @@ function get_H_CNOT(c::Gate)
     return :($a * $b * $c * $a * $b)
 end
 
-CNOT2H_CNOT_rule = @rule a a::Gate => get_H_CNOT(a) where is_CNOT(a)
+CNOT2H_CNOT_rule = @rule a a::Gate => get_H_CNOT(a) where {is_CNOT(a)}
 
 function get_CNOT_normalindex(a::Gate)
-    index = nothing 
-    for l in a.loc 
-        if l isa Loc 
-            index = l.index 
-        end 
-    end 
+    index = nothing
+    for l in a.loc
+        if l isa Loc
+            index = l.index
+        end
+    end
     return index
 end
 
 function get_CNOT_controlindex(a::Gate)
-    index = nothing 
-    for l in a.loc 
-        if l isa cLoc 
-            index = l.index 
-        end 
-    end 
+    index = nothing
+    for l in a.loc
+        if l isa cLoc
+            index = l.index
+        end
+    end
     return index
 end
 
 
 function is_CNOT_HH(a::Gate, b::Gate, c::Gate)
-    check = true 
+    check = true
     check = check && is_H(a) && is_CNOT(b) && is_H(c)
     check = check && !is_gate_type_inverse(a, b) && !is_gate_type_inverse(a, c)
 
@@ -116,7 +116,7 @@ function is_CNOT_HH(a::Gate, b::Gate, c::Gate)
 
     a_index = loc_indices(a)[1]
     c_index = loc_indices(c)[1]
-    check = check && a_index==index && c_index==index
+    check = check && a_index == index && c_index == index
     return check
 
 end
@@ -130,7 +130,7 @@ function invert_CNOT_HH(a::Gate, b::Gate, c::Gate)
     return :($h * $bd * $h)
 end
 
-CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => invert_CNOT_HH(a, b, c) where is_CNOT_HH(a, b, c)
+CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => invert_CNOT_HH(a, b, c) where {is_CNOT_HH(a, b, c)}
 
 function is_CNOTthree(a::Gate, b::Gate, c::Gate)
     check = !is_gate_type_inverse(a, b) && !is_gate_type_inverse(a, c)
@@ -139,7 +139,7 @@ function is_CNOTthree(a::Gate, b::Gate, c::Gate)
 
     a_index = get_CNOT_normalindex(a)
     c_index = get_CNOT_normalindex(c)
-    check = check && a_index==get_CNOT_controlindex(b) && a_index==c_index
+    check = check && a_index == get_CNOT_controlindex(b) && a_index == c_index
     return check
 end
 
@@ -149,7 +149,7 @@ function get_CNOT_HH(b::Gate)
     return :($h * $b * $h)
 end
 
-CNOTthree2CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOT_HH(b) where is_CNOTthree(a, b, c)
+CNOTthree2CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOT_HH(b) where {is_CNOTthree(a, b, c)}
 
 
 function get_CNOTthree(b::Gate)
@@ -159,7 +159,7 @@ function get_CNOTthree(b::Gate)
     return :($cnot * $b * $cnot)
 end
 
-CNOTHH2CNOTthree_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOTthree(b) where is_CNOT_HH(a, b, c)
+CNOTHH2CNOTthree_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOTthree(b) where {is_CNOT_HH(a, b, c)}
 
 """end"""
 
@@ -168,10 +168,10 @@ CNOTHH2CNOTthree_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOTthree
 
 """rules that are equivalent up to a globle phase, may correct it in the future"""
 
-HYH2Y_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Y(a) where is_HYH(a, b, c) #HYH = -Y
-Y2HYH_rule = @rule a a::Gate => generate_HYH(a) where is_Y(a)
+HYH2Y_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Y(a) where {is_HYH(a, b, c)} #HYH = -Y
+Y2HYH_rule = @rule a a::Gate => generate_HYH(a) where {is_Y(a)}
 
-XYZ_rule = @rule a b c a::Gate * b::Gate * c::Gate => One() where is_XYZ(a, b, c) #XYZ = iI
+XYZ_rule = @rule a b c a::Gate * b::Gate * c::Gate => One() where {is_XYZ(a, b, c)} #XYZ = iI
 """end"""
 
 
@@ -225,26 +225,26 @@ function get_equivalent_simplify_rules()
 
 end
 
-block_merge_rules_include_RG = @theory a b begin 
-    a::Gate * b::Gate => block_merge(a, b) where is_block_merge(a, b; exclude_RG=false)
-    a::Block * b::Gate => block_merge(a, b) where is_block_merge(a, b; exclude_RG=false)
-    a::Gate * b::Block => block_merge(a, b) where is_block_merge(a, b; exclude_RG=false)
+block_merge_rules_include_RG = @theory a b begin
+    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
+    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
+    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
 end
 
 
 
-block_merge_rules_exclude_RG = @theory a b begin 
-    a::Gate * b::Gate => block_merge(a, b) where is_block_merge(a, b; exclude_RG=true)
-    a::Block * b::Gate => block_merge(a, b) where is_block_merge(a, b; exclude_RG=true)
-    a::Gate * b::Block => block_merge(a, b) where is_block_merge(a, b; exclude_RG=true)
+block_merge_rules_exclude_RG = @theory a b begin
+    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
+    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
+    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
 end
 
 
 function get_parallel_block_merge_rules(qubits_indices::Vector{Int})
-    parallel_block_merge_rules = @theory a b begin 
-        a::Gate * b::Gate => parallel_block_merge(a, b) where is_parallel_block_merge(a, b, qubits_indices)
-        a::Block * b::Gate => parallel_block_merge(a, b) where is_parallel_block_merge(a, b, qubits_indices)
-        a::Gate * b::Block => parallel_block_merge(a, b) where is_parallel_block_merge(a, b, qubits_indices)
+    parallel_block_merge_rules = @theory a b begin
+        a::Gate * b::Gate => parallel_block_merge(a, b) where {is_parallel_block_merge(a, b, qubits_indices)}
+        a::Block * b::Gate => parallel_block_merge(a, b) where {is_parallel_block_merge(a, b, qubits_indices)}
+        a::Gate * b::Block => parallel_block_merge(a, b) where {is_parallel_block_merge(a, b, qubits_indices)}
     end
     return parallel_block_merge_rules
 end
@@ -252,7 +252,7 @@ end
 
 block_expand_rule = @rule a a::Block => block_expand2expr(a)
 
-function get_block_rules(;exclude_RG=true)
+function get_block_rules(; exclude_RG=true)
     v = AbstractRule[]
     push!(v, la_rule)
     push!(v, ra_rule)
@@ -260,7 +260,7 @@ function get_block_rules(;exclude_RG=true)
     push!(v, block_expand_rule)
     if exclude_RG
         append!(v, block_merge_rules_exclude_RG)
-    else 
+    else
         append!(v, block_merge_rules_include_RG)
     end
     return v
