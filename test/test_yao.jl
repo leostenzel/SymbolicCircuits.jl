@@ -1,4 +1,4 @@
-using SymbolicCircuit
+using SymbolicCircuits
 
 
 x1 = Gate(gX(), [Loc(1), ])

@@ -1,5 +1,5 @@
-using SymbolicCircuit
-using SymbolicCircuit: get_full_simplify_rules, get_gates, get_special_CNOT_rules
+using SymbolicCircuits
+using SymbolicCircuits: get_full_simplify_rules, get_gates, get_special_CNOT_rules
 
 cnot2c1 = UGate(gX(), [Loc(2), cLoc(1)])
 cnot3c2 = UGate(gX(), [Loc(3), cLoc(2)])

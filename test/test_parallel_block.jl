@@ -1,5 +1,5 @@
-using SymbolicCircuit
-using SymbolicCircuit: parallel_block_merge, is_parallel_block_merge, block_simplify, get_parallel_block_rules, block_simplify_rewriter
+using SymbolicCircuits
+using SymbolicCircuits: parallel_block_merge, is_parallel_block_merge, block_simplify, get_parallel_block_rules, block_simplify_rewriter
 
 
 
@@ -56,9 +56,9 @@ println()
 
 # let head_circ = head_circuit()
 #     for gate in get_gates(ncirc)
-#         if gate isa Block 
+#         if gate isa Block
 #             gate = block_simplify(gate)
-#         end 
+#         end
 #         head_circ *= gate
 #         @show head_circ
 #     end

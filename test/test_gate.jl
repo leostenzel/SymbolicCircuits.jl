@@ -1,5 +1,5 @@
-using SymbolicCircuit
-using SymbolicCircuit: is_CNOT_T_commute, is_cancel, is_merge, is_r_merge, is_single_qubit, is_loc_identity, is_gate_type_identity, is_loc_type_identity
+using SymbolicCircuits
+using SymbolicCircuits: is_CNOT_T_commute, is_cancel, is_merge, is_r_merge, is_single_qubit, is_loc_identity, is_gate_type_identity, is_loc_type_identity
 
 """test is_CNOT_T_commute"""
 a = UGate(gX(), [Loc(1), cLoc(2)])

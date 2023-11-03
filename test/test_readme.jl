@@ -1,4 +1,4 @@
-using SymbolicCircuit
+using SymbolicCircuits
 
 x1 = UGate(gX(), [Loc(1), ])
 cnot_1c2 = UGate(gX(), [Loc(1), cLoc(2)])
@@ -11,15 +11,15 @@ circ = x1 * x1 * h2 * y3 * x1 * x1 * h2
 
 let circ = head_circuit()
     for _ in 1:2
-        for g in [x1, h2, y3]  
-            circ *= g 
-        end 
+        for g in [x1, h2, y3]
+            circ *= g
+        end
     end
 end
 
 @show circ
 
-using SymbolicCircuit: is_Z, is_commute, is_cancel
+using SymbolicCircuits: is_Z, is_commute, is_cancel
 using Metatheory
 using Metatheory: PassThrough, Postwalk
 #commute rules
@@ -45,7 +45,7 @@ r = @rule a a::Gate => get_HXH(a) where is_Z(a)
 r = Postwalk(PassThrough(r))
 @show r(circ.expr)
 
-using SymbolicCircuit
+using SymbolicCircuits
 using Metatheory
 using Metatheory.Library: @right_associative, @left_associative
 v = AbstractRule[]
@@ -65,19 +65,19 @@ function simplify(circuit)
     report = saturate!(g, v, params)
     circuit = extract!(g, astsize)
     return circuit
-end 
+end
 
 circ = x1 * x1 * h2 * y3 * x1 * x1 * h2
 ncirc = simplify(circ)
 
 @show areequal(v, circ, ncirc)
-# @show SymbolicCircuit.areequal(Val(:default_rule), circ, ncirc)
+# @show SymbolicCircuits.areequal(Val(:default_rule), circ, ncirc)
 
 circ = x1 * x1 * h2 * y3 * x1 * x1 * h2
 circ = egraph_simplify(circ, Val(:default_rule); verbose=false)
 
 
-using SymbolicCircuit
+using SymbolicCircuits
 x1 = UGate(gX(), [Loc(1), ])
 h2 = UGate(gH(), [Loc(2), ])
 y3 = UGate(gY(), [Loc(3), ])
@@ -87,4 +87,4 @@ ncirc = egraph_simplify(circ, Val(:default_rule))
 @show circ
 @show ncirc
 
-SymbolicCircuit.areequal(Val(:default_rule), circ, ncirc)
+SymbolicCircuits.areequal(Val(:default_rule), circ, ncirc)

@@ -1,5 +1,5 @@
-using SymbolicCircuit
-using SymbolicCircuit: get_parallel_block_rules, block_simplify_rewriter
+using SymbolicCircuits
+using SymbolicCircuits: get_parallel_block_rules, block_simplify_rewriter
 
 H0 = UGate(gH(), [Loc(4)])
 H1 = UGate(gH(), [Loc(1)])
@@ -21,14 +21,14 @@ X1 = UGate(gX(), [Loc(1)])
 X2 = UGate(gX(), [Loc(2)])
 X3 = UGate(gX(), [Loc(3)])
 
-circ = H3 * H1 * Z2 * Y3 * Y3 * Z0 
-circ *= H2 * H2 * X2 * X0 * Z0 * Y2 
+circ = H3 * H1 * Z2 * Y3 * Y3 * Z0
+circ *= H2 * H2 * X2 * X0 * Z0 * Y2
 circ *= X3 * Y1 * Y1 * Y1 * Z2 * H0
 circ *= Z0 * Z2 * X3 * Y3 * X1 * X3
-circ *= Y0 * Z3 * Y1 * H2 * Z1 * X0 
+circ *= Y0 * Z3 * Y1 * H2 * Z1 * X0
 
 
-answer = H3 * H1 * Z2 * Z0 * X2 * X0 * Z0 * Y2 * Y1 * H0 
+answer = H3 * H1 * Z2 * Z0 * X2 * X0 * Z0 * Y2 * Y1 * H0
 answer *= Z0 * Y3 * X1 * X3 * Y0 * Z3 * Y1 * H2 * Z1 * X0
 
 count_gates(answer)

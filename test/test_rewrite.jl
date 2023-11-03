@@ -1,4 +1,4 @@
-using SymbolicCircuit
+using SymbolicCircuits
 
 x1 = UGate(gX(), [Loc(1), ])
 y3 = UGate(gY(), [Loc(3), ])

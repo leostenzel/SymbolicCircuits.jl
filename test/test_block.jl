@@ -1,6 +1,6 @@
 using Metatheory
-using SymbolicCircuit
-using SymbolicCircuit: merge_block2yao, block_merge, is_block_merge
+using SymbolicCircuits
+using SymbolicCircuits: merge_block2yao, block_merge, is_block_merge
 
 
 
@@ -48,7 +48,7 @@ function test(block, circ, n_qubits)
     a = zero_state(n_qubits) |> yao_gate
     b = zero_state(n_qubits) |> yao_circ
 
-    @show a.state 
+    @show a.state
     @show b.state
     println()
 end

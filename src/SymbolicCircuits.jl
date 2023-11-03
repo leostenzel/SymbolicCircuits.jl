@@ -1,4 +1,4 @@
-module SymbolicCircuit
+module SymbolicCircuits
 
 using Metatheory
 

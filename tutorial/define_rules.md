@@ -1,13 +1,13 @@
-## How to define your own rules in `SymbolicCircuit.jl`?
+## How to define your own rules in `SymbolicCircuits.jl`?
 
-One of the major goals of `SymbolicCircuit.jl` is to provide a symbolic system, such that users can define their own rules easily, and they can easily apply their rules to egraph provided by `Metatheory.jl` to show the effect of the rules on their circuit.
+One of the major goals of `SymbolicCircuits.jl` is to provide a symbolic system, such that users can define their own rules easily, and they can easily apply their rules to egraph provided by `Metatheory.jl` to show the effect of the rules on their circuit.
 
-### What is the gate and circuit in `SymbolicCircuit.jl`?
-To do this, firstly, let's take a look at the `Gate` struct provided by `SymbolicCircuit.jl`:
+### What is the gate and circuit in `SymbolicCircuits.jl`?
+To do this, firstly, let's take a look at the `Gate` struct provided by `SymbolicCircuits.jl`:
 
 A gate struct is defined as below:
 ```julia
-struct Gate 
+struct Gate
     g::G
     loc::Vector{Q}
 end
@@ -31,7 +31,7 @@ Where `g` is an instance of type `G`, indicating which type of gate it is: Pauli
         struct rY <:RG theta::Vector{Any} end for rotate Y gate
         struct rZ <:RG theta::Vector{Any} end for rotate Z gate
 
-`SymbolicCircuit.jl` also defined dagger gate seperately, for example, `struct gXd <:UHG end` stands for dagger X gate. However, currently I'm not sure if there are ways to avoid such a redudency of definations.
+`SymbolicCircuits.jl` also defined dagger gate separately, for example, `struct gXd <:UHG end` stands for dagger X gate. However, currently I'm not sure if there are ways to avoid such a redundancy of definitions.
 
 `abstract type Q end` is an abstract type which stands for qubit:
 
@@ -51,9 +51,9 @@ rotate X with angle `theta1 + theta2` is defined:
 ```julia
 rx1 = UGate(rX([:theta1, :theta2]), [Loc(1)])
 ```
-The reason there allow mutiple angles is because in VQE system, a lot of ansatz has a linear mapping between the rotation angle and their parameters. A symbolic system like this will represent such phenomenon correctly.
+The reason there allow multiple angles is in VQE system, a lot of ansatz has a linear mapping between the rotation angle and their parameters. A symbolic system like this will represent such phenomenon correctly.
 
-As refered in the introductory document, the circuit in `SymbolicCircuit.jl` is defined as a chain of gate, connected by operator `*`, for example:
+As referred in the introductory document, the circuit in `SymbolicCircuits.jl` is defined as a chain of gate, connected by operator `*`, for example:
 ```julia
 circ = x1 * x2c1 * rx1
 ```
@@ -64,7 +64,7 @@ It just looks like this, if you print it:
 
 You see, it is just an expression!
 
-The trick of `SymbolicCircuit.jl` is that it takes a chain of Ugate(quantum circuit) into an AST in julia, and systems like `Metatheory.jl` can easily handle it.
+The trick of `SymbolicCircuits.jl` is that it takes a chain of Ugate(quantum circuit) into an AST in julia, and systems like `Metatheory.jl` can easily handle it.
 
 We are ready to define our own rules for quantum circuit :)
 
@@ -77,7 +77,7 @@ To define a rule, we need to functions:
 
 More specifically, consider a CNOT and T mutate rule:
 
-![image](https://github.com/overshiki/SymbolicCircuit.jl/blob/main/tutorial/CNOT_T_commute.png)
+![image](https://github.com/overshiki/SymbolicCircuits.jl/blob/main/tutorial/CNOT_T_commute.png)
 
 We firstly defined a predicate function:
 ```julia
@@ -86,12 +86,12 @@ function is_CNOT(a::Gate)
         if length(a.loc)==2
             if isa(a.loc[1], Loc) || isa(a.loc[2], Loc)
                 if isa(a.loc[1], cLoc) || isa(a.loc[2], cLoc)
-                    return true 
-                end 
-            end 
-        end 
+                    return true
+                end
+            end
+        end
     end
-    return false 
+    return false
 end
 
 function is_T(a::Gate)
@@ -102,16 +102,15 @@ end
 
 function is_CNOT_T_commute(a::Gate, b::Gate)
     if is_CNOT(a) && is_T(b)
-        for loc in a.loc 
-            if isa(loc, cLoc)
-                index = loc.index 
-                if index == b.loc[1].index 
-                    return true 
-                end 
-            end 
-        end 
-    end 
-    return false 
+        for loc ∈ a.loc
+            if loc isa cLoc
+                if loc.index == b.loc[1].index
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end
 ```
 
