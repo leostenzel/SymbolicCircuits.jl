@@ -1,6 +1,6 @@
 
 
-mutable struct Circuit 
+mutable struct Circuit
     expr::Union{Expr, One, Gate, Block, Real}
 end
 
@@ -44,75 +44,32 @@ function head_circuit()
 end
 
 using MacroTools: postwalk
-# function get_length(circ::Int)
-#     @assert circ==0 
-#     return 0
-# end
-
-# function get_length(::One)
-#     return 0
-# end
-
-# function get_length(::Gate)
-#     return 1
-# end
-
-# function get_length(circuit::Circuit)
-#     circuit = circuit.expr
-#     gates = []
-#     postwalk(circuit) do x 
-#         if typeof(x)==Gate
-#             push!(gates, x)
-#         end
-#         return x 
-#     end
-
-#     return length(gates)
-# end
-
-
-
-# function get_gates(circuit::Circuit, ::Val{:withblock})
-#     gates = get_gates(circuit)
-#     ngates = []
-#     for g in gates
-#         if g isa Gate 
-#             push!(ngates, g)
-#         elseif g isa Block 
-#             push!(ngates, g.gates)
-#         else 
-#             error()
-#         end 
-#     end 
-#     return ngates
-# end
-
 
 function get_gates(circuit::Circuit)
     circuit = circuit.expr
     gates = []
-    postwalk(circuit) do x 
+    postwalk(circuit) do x
         # @show x, x isa Gate || x isa One, typeof(x)
-        # if x isa Expr 
+        # if x isa Expr
         #     @show x.head, x.args
         # end
         if x isa Gate || x isa One || x isa Block
             push!(gates, x)
         end
 
-        if x isa Expr 
-            if x.head==:call && x.args[1]==:Gate 
+        if x isa Expr
+            if x.head==:call && x.args[1]==:Gate
                 push!(gates, eval(x))
                 # push!(gates, x)
-            end 
+            end
 
-            if x.head==:call && x.args[1]==:Block 
+            if x.head==:call && x.args[1]==:Block
                 push!(gates, eval(x))
-            end 
+            end
 
         end
 
-        return x 
+        return x
     end
     return gates
 end
@@ -140,15 +97,15 @@ end
 
 function rebuild_circuit(gates::Vector)
     circ = head_circuit()
-    for g in gates 
-        circ *= g 
-    end 
+    for g in gates
+        circ *= g
+    end
     return circ
 end
 
 function rebuild_circuit(g::Gate)
     circ = head_circuit()
-    circ *= g 
+    circ *= g
     return circ
 end
 
@@ -162,7 +119,7 @@ function union!(theta_set::Vector{Symbol}, theta_subset::Vector{Symbol})
     for theta in theta_subset
         if !(theta in theta_set)
             push!(theta_set, theta)
-        end 
+        end
     end
 end
 
@@ -170,7 +127,7 @@ function get_parameters(circuit::Circuit)
     gates = get_gates(circuit)
     thetas = Symbol[]
     for g in gates
-        if g.g isa RG 
+        if g.g isa RG
             union!(thetas, g.g.theta)
         end
     end
@@ -184,13 +141,13 @@ function count_gates(circuit::Circuit)
     """
     gates = get_gates(circuit)
     count = []
-    for g in gates 
+    for g in gates
         local _count = 0
-        if g isa Gate 
-            _count = 1 
-        elseif g isa Block 
+        if g isa Gate
+            _count = 1
+        elseif g isa Block
             _count = length(g.gates)
-        else 
+        else
             error()
         end
         push!(count, _count)
@@ -203,14 +160,14 @@ end
 function max_indices(gate::Gate, num_qubits)
     for index in loc_indices(gate)
         num_qubits = max(num_qubits, index)
-    end 
+    end
     return num_qubits
 end
 
 function max_indices(b::Block, num_qubits)
     for gate in b.gates
         num_qubits = max_indices(gate, num_qubits)
-    end 
+    end
     return num_qubits
 end
 
@@ -218,6 +175,6 @@ function max_indices(circ::Circuit)
     num_qubits = 0
     for gate in get_gates(circ)
         num_qubits = max_indices(gate, num_qubits)
-    end 
+    end
     return num_qubits
 end

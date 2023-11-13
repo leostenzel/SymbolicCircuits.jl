@@ -226,17 +226,17 @@ function get_equivalent_simplify_rules()
 end
 
 block_merge_rules_include_RG = @theory a b begin
-    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
-    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
-    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=false)}
+    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = false)}
+    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = false)}
+    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = false)}
 end
 
 
 
 block_merge_rules_exclude_RG = @theory a b begin
-    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
-    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
-    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG=true)}
+    a::Gate * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = true)}
+    a::Block * b::Gate => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = true)}
+    a::Gate * b::Block => block_merge(a, b) where {is_block_merge(a, b; exclude_RG = true)}
 end
 
 

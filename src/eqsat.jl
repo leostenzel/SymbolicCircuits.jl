@@ -19,7 +19,6 @@ function _simplify(circuit::Circuit, v::Vector{<:AbstractRule}, timeout)
     report = saturate!(g, v, params)
     circuit = extract!(g, astsize)
     circuit = Circuit(circuit)
-    # println(report.reason)
     return circuit, report
 end
 
@@ -91,9 +90,6 @@ function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=Satura
     if length(exprs) == 1
         return true
     end
-    # rebuild!(G)
-
-    # @log "starting saturation"
 
     n = length(exprs)
     ids = Vector{EClassId}(undef, n)
@@ -106,10 +102,7 @@ function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=Satura
 
     goal = EqualityGoal(collect(exprs), ids)
 
-    # alleq = () -> (all(x -> in_same_set(G.uf, ids[1], x), ids[2:end]))
-
     params.goal = goal
-    # params.stopwhen = alleq
 
     report = saturate!(g, t, params)
 
@@ -118,37 +111,11 @@ function _areequal(g::EGraph, t::Vector{<:AbstractRule}, exprs...; params=Satura
     else
         return report.reason
     end
-
-    # # display(g.classes); println()
-    # if !(report.reason === :saturated) && !reached(g, goal)
-    #     @show report.reason
-    #     return missing # failed to prove
-    # end
-    # @show report.reason
-    # return reached(g, goal)
 end
 
-
-function areequal(::Val{:default_rule}, circs...)
-    # exprs = [x.expr for x in circs]
-    # ncirc = Circuit[]
-    # for circ in circs
-    #     if get_length(circ)==1
-    #         circ *= One()
-    #     end
-    #     push!(ncirc, circ)
-    # end
-
-    # nexprs = [x.expr for x in ncirc]
-
-    # return _areequal(default_rule, nexprs...)
-
-    return areequal(Val(:withrule), default_rule, circs...)
-end
-
+areequal(::Val{:default_rule}, circs...) = areequal(Val(:withrule), default_rule, circs...)
 
 function areequal(::Val{:withrule}, rules, circs...)
-    # exprs = [x.expr for x in circs]
     ncirc = Circuit[]
     for circ in circs
         if get_length(circ) == 1
