@@ -188,33 +188,32 @@ end
 is_single_qubit(a::Gate) = length(a.loc) == 1
 
 function is_Z(a::Gate)
-    check = isa(a.g, gZ)
+    check = a.g isa gZ
     check && is_single_qubit(a)
 end
 
 function is_X(a::Gate)
-    check = isa(a.g, gX)
+    check = a.g isa gX
     check && is_single_qubit(a)
 end
 
-
 function is_Y(a::Gate)
-    check = isa(a.g, gY)
+    check = a.g isa gY
     check && is_single_qubit(a)
 end
 
 function is_H(a::Gate)
-    check = isa(a.g, gH)
+    check = a.g isa gH
     check && is_single_qubit(a)
 end
 
 function is_T(a::Gate)
-    check = isa(a.g, gT)
+    check = a.g isa gT
     check && is_single_qubit(a)
 end
 
 function is_S(a::Gate)
-    check = isa(a.g, gS)
+    check = a.g isa gS
     check && is_single_qubit(a)
 end
 
@@ -235,7 +234,7 @@ function get_CNOT_loc_index(a::Gate, ::Val{:cloc})
 end
 
 function is_CNOT(a::Gate)
-    if isa(a.g, gX)
+    if a.g isa gX
         if length(a.loc) == 2
             if isa(a.loc[1], Loc) || isa(a.loc[2], Loc)
                 if isa(a.loc[1], cLoc) || isa(a.loc[2], cLoc)
@@ -340,7 +339,6 @@ end
 
 function merge(a::Gate, b::Gate)
     if is_S(a)
-        @show a.loc
         return :($(typeof(a))(gZ(), $(a.loc)))
 
     elseif is_T(a)

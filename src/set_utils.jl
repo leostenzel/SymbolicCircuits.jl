@@ -15,14 +15,14 @@ end
 function union!(v::Vector{T}, a::T) where {T}
     if !(a in v)
         push!(v, a)
-    end 
+    end
 end
 
 function is_set_identity(a::Vector{T}, b::Vector{T}) where {T}
-    if is_subset(a, b) && is_subset(b, a) && length(a)==length(b)
-        return true 
-    else 
-        return false 
+    if is_subset(a, b) && is_subset(b, a) && length(a) == length(b)
+        return true
+    else
+        return false
     end
 end
 
@@ -31,10 +31,10 @@ function is_subset(atom::T, larger_atom_vec::Vector{T}) where {T}
 end
 
 function is_subset(atom_vec::Vector{T}, larger_atom_vec::Vector{T}) where {T}
-    check = true 
+    check = true
     for atom in atom_vec
         check = check && is_subset(atom, larger_atom_vec)
-    end 
+    end
     return check
 
 end
@@ -44,9 +44,9 @@ function is_intersect(indices1::Vector{T}, indices2::Vector{T}) where {T}
     check = false
     for index in indices1
         if index in indices2
-            check = true 
-        end 
-    end 
+            check = true
+        end
+    end
     return check
 end
 
@@ -55,17 +55,17 @@ function get_intersect(vec1::Vector{T}, vec2::Vector{T}) where {T}
     for v1 in vec1
         if v1 in vec2
             push!(rvec, v1)
-        end 
-    end 
+        end
+    end
     return rvec
-end 
+end
 
 function get_complement(inner_vec::Vector{T}, outer_vec::Vector{T}) where {T}
     com = T[]
-    for symbol in outer_vec 
+    for symbol in outer_vec
         if !(symbol in inner_vec)
             push!(com, symbol)
-        end 
+        end
     end
     return com
 end

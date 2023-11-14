@@ -5,7 +5,11 @@ la_rule = @left_associative (*)
 
 commute_rule = @rule a b a::Gate * b::Gate => :($(b) * $(a)) where {is_commute(a, b)}
 cancel_rule = @rule a b a::Gate * b::Gate => One() where {is_cancel(a, b)}
+
+# Splits S into two T, Z into two S (TODO This is not very general?!)
 expand_rule = @rule a a::Gate => expand(a) where {is_expand(a)}
+
+# merges 2×S to Z, 2×T to S, or merges rotations around other axes.
 merge_rule = @rule a b a::Gate * b::Gate => merge(a, b) where {is_merge(a, b)}
 
 
@@ -26,10 +30,17 @@ end
 
 """some rewrite rules"""
 to_dagger_rule = @rule x x::Gate => to_dagger(x)
+
+# Z → HXH
 Z2HXH_rule = @rule a a::Gate => generate_HXH(a) where {is_Z(a)}
+
+# HXH → Z
 HXH2Z_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Z(a) where {is_HXH(a, b, c)}
 
+# X → HZH
 X2HZH_rule = @rule a a::Gate => generate_HZH(a) where {is_X(a)}
+
+# HZH → X
 HZH2X_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_X(a) where {is_HZH(a, b, c)}
 """some rewrite rules end"""
 
@@ -38,6 +49,8 @@ HZH2X_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_X(a) where {is_
 function check_H_CNOT(a::Gate, b::Gate, c::Gate, d::Gate, e::Gate)
     check = true
     check = check && is_H(a) && is_H(b) && is_CNOT(c) && is_H(d) && is_H(e)
+
+    # CNOT & H are self adjoint, why test for daggered-ness?
     check = check && (!is_gate_type_inverse(a, b) && !is_gate_type_inverse(a, c) && !is_gate_type_inverse(a, d) && !is_gate_type_inverse(a, e))
 
     index_a = loc_indices(a)[1]
@@ -75,6 +88,14 @@ function invert_CNOT_indices2expr(c::Gate)
     return :($g)
 end
 
+"""
+   ┌───┐           ┌───┐          ┌───┐
+───┤ H ├─────■─────┤ H ├───     ──┤ X ├──
+   ├───┤   ┌─┴─┐   ├───┤     →    └─┬─┘
+───┤ H ├───┤ X ├───┤ H ├───     ────■────
+   └───┘   └───┘   └───┘
+(Where the indices can be exchanged, of course)
+"""
 H_CNOT2CNOT_rule = @rule a b c d e a::Gate * b::Gate * c::Gate * d::Gate * e::Gate => invert_CNOT_indices2expr(c) where {check_H_CNOT(a, b, c, d, e)}
 
 function get_H_CNOT(c::Gate)
@@ -84,7 +105,16 @@ function get_H_CNOT(c::Gate)
     return :($a * $b * $c * $a * $b)
 end
 
+"""
+  ┌───┐             ┌───┐           ┌───┐
+──┤ X ├──        ───┤ H ├─────■─────┤ H ├───
+  └─┬─┘     →       ├───┤   ┌─┴─┐   ├───┤
+────■────        ───┤ H ├───┤ X ├───┤ H ├───
+                    └───┘   └───┘   └───┘
+(Where the indices can be exchanged, of course)
+"""
 CNOT2H_CNOT_rule = @rule a a::Gate => get_H_CNOT(a) where {is_CNOT(a)}
+
 
 function get_CNOT_normalindex(a::Gate)
     index = nothing
@@ -130,6 +160,14 @@ function invert_CNOT_HH(a::Gate, b::Gate, c::Gate)
     return :($h * $bd * $h)
 end
 
+
+"""
+                                    ┌───┐   ┌───┐   ┌───┐
+─────────────■─────────────      ───┤ H ├───┤ X ├───┤ H ├───
+   ┌───┐   ┌─┴─┐   ┌───┐      →     └───┘   └─┬─┘   └───┘
+───┤ H ├───┤ X ├───┤ H ├───      ─────────────■─────────────
+   └───┘   └───┘   └───┘
+"""
 CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => invert_CNOT_HH(a, b, c) where {is_CNOT_HH(a, b, c)}
 
 function is_CNOTthree(a::Gate, b::Gate, c::Gate)
@@ -149,6 +187,15 @@ function get_CNOT_HH(b::Gate)
     return :($h * $b * $h)
 end
 
+
+"""
+Wait… this _does not_ seem right?!
+   ┌───┐           ┌───┐            ┌───┐   ┌───┐   ┌───┐
+───┤ X ├─────■─────┤ X ├───      ───┤ H ├───┤ X ├───┤ H ├───
+   └─┬─┘   ┌─┴─┐   └─┬─┘      →     └───┘   └─┬─┘   └───┘
+─────■─────┤ X ├─────■─────      ─────────────■─────────────
+           └───┘
+"""
 CNOTthree2CNOTHH_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOT_HH(b) where {is_CNOTthree(a, b, c)}
 
 
@@ -159,6 +206,14 @@ function get_CNOTthree(b::Gate)
     return :($cnot * $b * $cnot)
 end
 
+"""
+Wait… this _does not_ seem right?!
+   ┌───┐   ┌───┐   ┌───┐           ┌───┐           ┌───┐
+───┤ H ├───┤ X ├───┤ H ├───     ───┤ X ├─────■─────┤ X ├───
+   └───┘   └─┬─┘   └───┘     →     └─┬─┘   ┌─┴─┐   └─┬─┘
+─────────────■─────────────     ─────■─────┤ X ├─────■─────
+                                           └───┘
+"""
 CNOTHH2CNOTthree_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOTthree(b) where {is_CNOT_HH(a, b, c)}
 
 """end"""
@@ -168,8 +223,14 @@ CNOTHH2CNOTthree_rule = @rule a b c a::Gate * b::Gate * c::Gate => get_CNOTthree
 
 """rules that are equivalent up to a globle phase, may correct it in the future"""
 
+
+# Couldnt this just be a::Gate * b::Gate * c::Gate => :($a)
+# or a::Gate * b::Gate * c::Gate --> a
 HYH2Y_rule = @rule a b c a::Gate * b::Gate * c::Gate => generate_Y(a) where {is_HYH(a, b, c)} #HYH = -Y
+
+# Y -> H * Y * H
 Y2HYH_rule = @rule a a::Gate => generate_HYH(a) where {is_Y(a)}
+
 
 XYZ_rule = @rule a b c a::Gate * b::Gate * c::Gate => One() where {is_XYZ(a, b, c)} #XYZ = iI
 """end"""
